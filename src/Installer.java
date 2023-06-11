@@ -29,6 +29,9 @@ public class Installer extends JFrame {
     private String version,logs;
 
     public Installer() {
+        // Customizable GitLab Instance
+        ConfigInstance Instance = new ConfigInstance("glpat-KNKWUrMw6zEitLhRspsJ", "46729939", "infsmp-mods-");
+
         // Set up UI
         setTitle("Installer");
         setSize(600, 200);
@@ -48,21 +51,7 @@ public class Installer extends JFrame {
         directoryPanel.setLayout(new BoxLayout(directoryPanel, BoxLayout.X_AXIS));
         JButton directorySelector = new JButton("Select Directory");
         directorySelector.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            chooser.setCurrentDirectory(selectedDirectory);
-            chooser.showOpenDialog(Installer.this);
-            selectedDirectory = chooser.getSelectedFile();
-            if (selectedDirectory == null){
-                if (osName.contains("windows")) {
-                    selectedDirectory = new File("C:\\Users\\" + System.getProperty("user.name")
-                            + "\\AppData\\Roaming\\.minecraft\\mods");
-                } else {
-                    selectedDirectory = new File(System.getProperty("user.home") + "/Library/Application Support/minecraft/mods");
-                }
-            }
-            directoryPath.setText(selectedDirectory.getAbsolutePath());
-            log("Set directory " + selectedDirectory.getAbsolutePath());
+            selectInstallationDirectory(osName);
         });
         directoryPanel.add(directorySelector);
 
@@ -98,20 +87,7 @@ public class Installer extends JFrame {
 
                 // Download latest source code zip file
                 log("Try fetching latest source code zip file release from GitLab");
-//                URL url = new URL(
-//                        "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
-//                InputStream in = url.openStream();
-//                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-//                int nRead;
-//                byte[] data = new byte[5012];
-//                while ((nRead = in.read(data, 0, data.length)) != -1) {
-//                    buffer.write(data, 0, nRead);
-//                }
-//                buffer.flush();
-//                String response = new String(buffer.toByteArray());
-//                JSONObject json = new JSONObject(response);
-//                String downloadUrl = json.getString("zipball_url");
-                ReleaseData newdat = getLatestRelease("glpat-KNKWUrMw6zEitLhRspsJ", "46729939");
+                ReleaseData newdat = getLatestRelease(Instance.GITLAB_PERSONAL_ACCESS_TOKEN, Instance.GITLAB_PROJECT_ID);
                 String downloadUrl = newdat.zipballURL;
                 version = newdat.versionTagName;
                 log("Retrieved downloadUrl from master " + newdat.originalURL);
@@ -121,7 +97,7 @@ public class Installer extends JFrame {
                 File zipFile = new File(selectedDirectory, "source.zip");
 
                 try {
-                    downloadZipFile(downloadUrl, "glpat-KNKWUrMw6zEitLhRspsJ", zipFile.getAbsolutePath());
+                    downloadZipFile(downloadUrl, Instance.GITLAB_PERSONAL_ACCESS_TOKEN, zipFile.getAbsolutePath());
                     //Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),StandardCopyOption.REPLACE_EXISTING);
                 } catch (Exception ex) {
                     log("Failed to download source code zip file with error " + ex.getMessage());
@@ -150,7 +126,7 @@ public class Installer extends JFrame {
                 String fName = "";
                 try {
                     for (File file : selectedDirectory.listFiles()) {
-                        if (file.getName().contains("infsmp-mods-")) {
+                        if (file.getName().contains(Instance.EXTRACTED_FOLDER_PREFIX)) {
                             fName = (osName.contains("windows") ? "\\" : "/") + file.getName();
                             break;
                         }
@@ -203,6 +179,25 @@ public class Installer extends JFrame {
         add(installButton);
         setVisible(true);
     }
+
+    private void selectInstallationDirectory(String osName) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setCurrentDirectory(selectedDirectory);
+        chooser.showOpenDialog(Installer.this);
+        selectedDirectory = chooser.getSelectedFile();
+        if (selectedDirectory == null){
+            if (osName.contains("windows")) {
+                selectedDirectory = new File("C:\\Users\\" + System.getProperty("user.name")
+                        + "\\AppData\\Roaming\\.minecraft\\mods");
+            } else {
+                selectedDirectory = new File(System.getProperty("user.home") + "/Library/Application Support/minecraft/mods");
+            }
+        }
+        directoryPath.setText(selectedDirectory.getAbsolutePath());
+        log("Set directory " + selectedDirectory.getAbsolutePath());
+    }
+
     private void log(String message) {
         logs += message + "\n";
     }

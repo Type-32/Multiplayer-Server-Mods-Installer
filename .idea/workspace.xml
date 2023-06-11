@@ -10,6 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dce2e40e-5217-46c4-8491-b96abe978b7c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/ConfigInstance.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Installer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Installer.java" afterDir="false" />
     </list>
