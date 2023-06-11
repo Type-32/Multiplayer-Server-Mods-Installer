@@ -1,10 +1,10 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="InfSMP Mods Installer:jar">
+  <artifact type="jar" build-on-make="true" name="InfSMP Mods Installer:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/InfSMP_Mods_Installer_jar</output-path>
     <root id="archive" name="InfSMP Mods Installer.jar">
       <element id="module-output" name="InfSMP Mods Installer" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/json/json/20230227/json-20230227.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/Downloads/openjfx-20.0.1_osx-aarch64_bin-sdk.zip" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/eduworks/org.json-ld/3.1.8/org.json-ld-3.1.8.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/eduworks/ec.base/3.1.8/ec.base-3.1.8.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/st-js/bridge/html/5.0.bv6/html-5.0.bv6.jar" path-in-jar="/" />
