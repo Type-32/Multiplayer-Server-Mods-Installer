@@ -58,23 +58,10 @@ public class Installer extends JFrame {
         // Install/Update button
         JButton installButton = new JButton("Install / Update");
         installButton.addActionListener(e -> {
-            if (selectedDirectory == null) {
+            if (selectedDirectory == null && (!selectedDirectory.getAbsolutePath().contains("mods") && !selectedDirectory.getAbsolutePath().contains("minecraft"))) {
                 JOptionPane.showMessageDialog(Installer.this, "Please select a directory first.");
                 return;
             }
-            // Show progress bar
-            progressBar.setIndeterminate(true);
-
-            // Check if directory has files
-            if (selectedDirectory.listFiles() != null) {
-                int result = JOptionPane.showConfirmDialog(Installer.this,
-                        "There are files in your selected directory. Are you sure you want to continue?",
-                        "Warning", JOptionPane.YES_NO_OPTION);
-                if (result != JOptionPane.YES_OPTION) {
-                    progressBar.setIndeterminate(false);
-                }
-            }
-
 
             try {
                 // Download latest source code zip file
