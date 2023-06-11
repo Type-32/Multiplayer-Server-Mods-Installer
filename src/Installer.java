@@ -14,7 +14,7 @@ public class Installer extends JFrame {
     private static final long serialVersionUID = 1L;
     private File selectedDirectory;
     private JTextField directoryPath;
-    private String version;
+    private String version,logs;
 
     public Installer() {
         // Set up UI
@@ -151,10 +151,19 @@ public class Installer extends JFrame {
                 ex.printStackTrace();
             }
 
+            try (FileWriter writer = new FileWriter("install_logs.txt")) {
+                writer.write(logs);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
             System.exit(0);
         });
         add(installButton);
         setVisible(true);
+    }
+    private void log(String message) {
+        logs += message + "\n";
     }
 
     public static void main(String[] args) {
