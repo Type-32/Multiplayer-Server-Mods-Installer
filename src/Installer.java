@@ -50,6 +50,7 @@ public class Installer extends JFrame {
         directorySelector.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setCurrentDirectory(selectedDirectory);
             chooser.showOpenDialog(Installer.this);
             selectedDirectory = chooser.getSelectedFile();
             if (selectedDirectory == null){
@@ -172,6 +173,15 @@ public class Installer extends JFrame {
                 // Delete extracted folder and zip file
                 log("Deleting extracted folder " + extractedFolder.getAbsolutePath());
                 extractedFolder.delete();
+
+                for (File file : selectedDirectory.listFiles()) {
+                    log("Checking " + file.getAbsolutePath() + " for .zip");
+                    if(file.getName().endsWith(".zip") || file.getName().equals("source.zip")){
+                        log("Found zip " + file.getAbsolutePath());
+                        file.delete();
+                        break;
+                    }
+                }
 
                 log("Installation finished with version tag " + version + " from repo " + newdat.originalURL);
                 JOptionPane.showMessageDialog(Installer.this, "Installation Finished.\nVersion Tag (Debug): " + version);
