@@ -1,32 +1,26 @@
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 import org.json.JSONObject;
 
-public class Installer extends Application {
+public class Installer extends JFrame {
     private static final long serialVersionUID = 1L;
     private File selectedDirectory;
-    private Label directoryPath;
-    private ProgressBar progressBar;
-    private Button cancelButton;
-    private TextArea logsWindow;
-    private Task<Void> worker;
-    private String versionCheckFileContent;
+    private JTextField directoryPath;
+    private JProgressBar progressBar;
 
-    public void start(Stage primaryStage) {
+    public Installer() {
         // Set up UI
-        primaryStage.setTitle("InfSMP Mods Installer");
+        setTitle("Installer");
+        setSize(700, 300);
+        setLayout(new FlowLayout());
 
         // Set default selected directory
         String osName = System.getProperty("os.name").toLowerCase();
@@ -38,175 +32,140 @@ public class Installer extends Application {
         }
 
         // Directory selector
-        HBox directoryPanel = new HBox();
-        directoryPanel.setSpacing(10);
-        Button directorySelector = new Button("Select Directory");
-        directorySelector.setOnAction(e -> {
-            DirectoryChooser chooser = new DirectoryChooser();
-            chooser.setInitialDirectory(selectedDirectory);
-            selectedDirectory = chooser.showDialog(primaryStage);
-            directoryPath.setText(selectedDirectory != null ? selectedDirectory.getAbsolutePath() : "NullReferenceException thrown");
-        });
-        directoryPanel.getChildren().add(directorySelector);
-
-        // Directory path label
-        directoryPath = new Label();
-        if (selectedDirectory != null) {
+        JPanel directoryPanel = new JPanel();
+        directoryPanel.setLayout(new BoxLayout(directoryPanel, BoxLayout.X_AXIS));
+        JButton directorySelector = new JButton("Select Directory");
+        directorySelector.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            selectedDirectory = chooser.getSelectedFile();
             directoryPath.setText(selectedDirectory.getAbsolutePath());
-        }
-        directoryPanel.getChildren().add(directoryPath);
+        });
+        directoryPanel.add(directorySelector);
+
+        File subSD = new File(selectedDirectory.getAbsolutePath());
+
+        // Directory path text box
+        directoryPath = new JTextField(30);
+        directoryPath.setEditable(false);
+        directoryPanel.add(directoryPath);
+
+        add(directoryPanel);
+
+        directoryPath.setText(selectedDirectory.getAbsolutePath());
+        System.out.println(selectedDirectory.getAbsolutePath());
 
         // Install/Update button
-        Button installButton = new Button("Install / Update");
-        installButton.setOnAction(e -> {
-
-            if (selectedDirectory == null || (!selectedDirectory.getName().contains("mods") && !selectedDirectory.getAbsolutePath().contains("minecraft"))) {
-                showAlert(Alert.AlertType.ERROR, "Please select a VALID mods directory first.");
+        JButton installButton = new JButton("Install / Update");
+        installButton.addActionListener(e -> {
+            if (selectedDirectory == null) {
+                JOptionPane.showMessageDialog(Installer.this, "Please select a directory first.");
                 return;
             }
-            primaryStage.getScene().setRoot(createProgressScene());
+            // Show progress bar
+            progressBar.setIndeterminate(true);
 
             // Check if directory has files
-            if (selectedDirectory.list().length > 0) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+            if (selectedDirectory.listFiles() != null) {
+                int result = JOptionPane.showConfirmDialog(Installer.this,
                         "There are files in your selected directory. Are you sure you want to continue?",
-                        ButtonType.YES, ButtonType.NO);
-                alert.showAndWait().ifPresent(result -> {
-                    if (result == ButtonType.YES) {
-                        // Delete all files in directory
-                        for (File file : selectedDirectory.listFiles()) {
-                            file.delete();
-                        }
-                    } else {
-                        primaryStage.getScene().setRoot(createMainScene());
-                        return;
-                    }
-                });
+                        "Warning", JOptionPane.YES_NO_OPTION);
+                if (result != JOptionPane.YES_OPTION) {
+                    progressBar.setIndeterminate(false);
+                }
             }
 
-            // Perform download and installation in background
-            Task<Void> task = new Task<Void>() {
-                protected Void call() throws Exception {
-                    try {
-                        // Download latest source code zip file
-                        updateMessage("Downloading latest source code zip file...");
-                        URL url = new URL(
-                                "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
-                        InputStream in = url.openStream();
-                        String response = getByteStream(in);
-                        JSONObject json = new JSONObject(response);
-                        String downloadUrl = json.getString("zipball_url");
-                        in.close();
 
-                        File zipFile = new File(selectedDirectory, "source.zip");
-                        Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),
-                                StandardCopyOption.REPLACE_EXISTING);
-
-                        updateMessage("Extracting zip file...");
-                        // Extract zip file
-                        ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-                        ZipEntry entry;
-                        while ((entry = zis.getNextEntry()) != null) {
-                            File file = new File(selectedDirectory, entry.getName());
-                            if (entry.isDirectory()) {
-                                file.mkdirs();
-                            } else {
-                                Files.copy(zis, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            }
-                        }
-                        zis.close();
-
-                        updateMessage("Moving files from extracted folder to current directory...");
-                        // Move files from extracted folder to current directory
-                        File extractedFolder = new File(selectedDirectory, selectedDirectory.list()[0]);
-                        for (File file : extractedFolder.listFiles()) {
-                            Files.move(file.toPath(),
-                                    new File(selectedDirectory, file.getName()).toPath(),
-                                    StandardCopyOption.REPLACE_EXISTING);
-                        }
-
-                        updateMessage("Deleting extracted folder and zip file...");
-                        // Delete extracted folder and zip file
-                        extractedFolder.delete();
-                        zipFile.delete();
-
-                        updateMessage("Finished.");
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-
-                    return null;
+            try {
+                // Download latest source code zip file
+                URL url = new URL(
+                        "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
+                InputStream in = url.openStream();
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[5012];
+                while ((nRead = in.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
                 }
-            };
-            task.messageProperty().addListener((obs, oldMessage, newMessage) -> {
-                progressBar.setProgress(-1);
-                logsWindow.appendText(newMessage + "\n");
-            });
-            task.setOnSucceeded(event -> {
-                primaryStage.getScene().setRoot(createMainScene());
-                showAlert(Alert.AlertType.INFORMATION, "Finished.");
-            });
-            new Thread(task).start();
-        });
+                buffer.flush();
+                String response = new String(buffer.toByteArray());
+                JSONObject json = new JSONObject(response);
+                String downloadUrl = json.getString("zipball_url");
+                in.close();
 
-        // Set up main scene
-        primaryStage.setScene(new Scene(createMainScene()));
-        primaryStage.show();
-    }
-    private void showAlert(Alert.AlertType type, String message) {
-        Alert alert = new Alert(type, message);
-        alert.showAndWait();
-    }
-    private Pane createMainScene() {
-        VBox root = new VBox();
-        root.setSpacing(10);
-        root.setPadding(new Insets(10));
+                File zipFile = new File(selectedDirectory, "source.zip");
 
-        root.getChildren().add(directoryPath.getParent());
+                try {
+                    Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(Installer.this,
+                            "An error occurred while downloading the source code zip file: " + ex.getMessage());
+                    return;
+                }
 
-        Button installButton = new Button("Install / Update");
-        installButton.setOnAction(((Button) directoryPath.getParent().getChildrenUnmodifiable().get(0)).getOnAction());
-        root.getChildren().add(installButton);
+                // Extract zip file
+                ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile.toPath()));
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    File file = new File(selectedDirectory, entry.getName());
+                    if (entry.isDirectory()) {
+                        file.mkdirs();
+                    } else {
+                        Files.copy(zis, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+                zis.close();
+                zipFile.delete();
 
-        return root;
-    }
+                // Move files from extracted folder to current directory
+                String fName = "";
+                try {
+                    for (File file : selectedDirectory.listFiles()) {
+                        if (file.getName().contains("Type-32-InfSMP-Mods-")) {
+                            fName = (osName.contains("windows") ? "\\" : "/") + file.getName();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(Installer.this,
+                            "An error occurred while scanning for the source folder: " + ex.getMessage());
+                }
+                File extractedFolder = new File(selectedDirectory.getAbsolutePath() + fName);
+//                try {
+//
+//                } catch (Exception ex) {
+//                    JOptionPane.showMessageDialog(Installer.this,
+//                            "An error occurred while moving mods to directory: " + ex.getMessage());
+//                    System.console().printf(ex.toString());
+//                }
+                System.out.println("Extracted folder: " + extractedFolder.getAbsolutePath());
+                for (File file : extractedFolder.listFiles()) {
+                    System.out.println("Folder File: " + file.getAbsolutePath());
+                    Files.move(file.toPath(), new File(selectedDirectory, file.getName()).toPath(),StandardCopyOption.REPLACE_EXISTING);
+                }
 
-    private Pane createProgressScene() {
-        VBox root = new VBox();
-        root.setSpacing(10);
-        root.setPadding(new Insets(10));
+                // Delete extracted folder and zip file
+                extractedFolder.delete();
 
-        root.getChildren().add(new Label("Download Progress"));
+                JOptionPane.showMessageDialog(Installer.this, "Finished.");
+            } catch (Exception ex) {
+                System.out.println(ex.getCause());
+                JOptionPane.showMessageDialog(Installer.this, "An error occurred while executing process: " + ex.getMessage());
+                ex.printStackTrace();
+            }
 
-        progressBar = new ProgressBar();
-        progressBar.setPrefWidth(400);
-        root.getChildren().add(progressBar);
-
-        cancelButton = new Button("Cancel");
-        cancelButton.setOnAction(e -> {
-            Platform.exit();
             System.exit(0);
         });
-        root.getChildren().add(cancelButton);
+        add(installButton);
 
-        logsWindow = new TextArea();
-        logsWindow.setEditable(false);
-        logsWindow.setPrefRowCount(10);
-        logsWindow.setPrefColumnCount(40);
-        root.getChildren().add(logsWindow);
+        // Progress Bar
+        progressBar = new JProgressBar(0, 100);
+        add(progressBar);
+        progressBar.setValue(0);
+        setVisible(true);
 
-        return root;
-    }
-
-    public String getByteStream(InputStream in) throws IOException{
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[1024];
-        while ((nRead = in.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        buffer.flush();
-        return buffer.toString();
+        setVisible(true);
     }
 
     public static void main(String[] args) {
