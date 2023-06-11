@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="InfSMP Mods Installer:jar" />
+    </artifacts-to-build>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dce2e40e-5217-46c4-8491-b96abe978b7c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/InfSMP_Mods_Installer_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InfSMP Mods Installer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/InfSMP Mods Installer.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Installer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Installer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -38,6 +44,7 @@
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
@@ -45,7 +52,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "onboarding.tips.debug.path": "/Users/administrator/Documents/Idea Projects/InfSMP Mods Installer/src/Main.java",
-    "project.structure.last.edited": "Global Libraries",
+    "project.structure.last.edited": "Artifacts",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "preferences.editor",
@@ -74,7 +81,7 @@
       <workItem from="1686273004900" duration="8513000" />
       <workItem from="1686299860363" duration="15143000" />
       <workItem from="1686447724649" duration="483000" />
-      <workItem from="1686448231346" duration="5021000" />
+      <workItem from="1686448231346" duration="5823000" />
     </task>
     <servers />
   </component>

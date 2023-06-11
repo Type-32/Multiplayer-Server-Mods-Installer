@@ -14,12 +14,12 @@ public class Installer extends JFrame {
     private static final long serialVersionUID = 1L;
     private File selectedDirectory;
     private JTextField directoryPath;
-    private JProgressBar progressBar;
+    private String version;
 
     public Installer() {
         // Set up UI
         setTitle("Installer");
-        setSize(700, 300);
+        setSize(600, 200);
         setLayout(new FlowLayout());
 
         // Set default selected directory
@@ -59,11 +59,19 @@ public class Installer extends JFrame {
         JButton installButton = new JButton("Install / Update");
         installButton.addActionListener(e -> {
             if (selectedDirectory == null && (!selectedDirectory.getAbsolutePath().contains("mods") && !selectedDirectory.getAbsolutePath().contains("minecraft"))) {
-                JOptionPane.showMessageDialog(Installer.this, "Please select a directory first.");
+                JOptionPane.showMessageDialog(Installer.this, "Please select a Valid Mods directory first.");
                 return;
             }
 
             try {
+
+                // Delete old files
+                for (File file : selectedDirectory.listFiles()) {
+                    if (file.getName().endsWith(".jar")) {
+                        file.delete();
+                    }
+                }
+
                 // Download latest source code zip file
                 URL url = new URL(
                         "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
@@ -78,6 +86,7 @@ public class Installer extends JFrame {
                 String response = new String(buffer.toByteArray());
                 JSONObject json = new JSONObject(response);
                 String downloadUrl = json.getString("zipball_url");
+                version = json.getString("tag_name");
                 in.close();
 
                 File zipFile = new File(selectedDirectory, "source.zip");
@@ -135,7 +144,7 @@ public class Installer extends JFrame {
                 // Delete extracted folder and zip file
                 extractedFolder.delete();
 
-                JOptionPane.showMessageDialog(Installer.this, "Finished.");
+                JOptionPane.showMessageDialog(Installer.this, "Installation Finished.\nVersion Tag (Debug): " + version);
             } catch (Exception ex) {
                 System.out.println(ex.getCause());
                 JOptionPane.showMessageDialog(Installer.this, "An error occurred while executing process: " + ex.getMessage());
@@ -145,13 +154,6 @@ public class Installer extends JFrame {
             System.exit(0);
         });
         add(installButton);
-
-        // Progress Bar
-        progressBar = new JProgressBar(0, 100);
-        add(progressBar);
-        progressBar.setValue(0);
-        setVisible(true);
-
         setVisible(true);
     }
 
