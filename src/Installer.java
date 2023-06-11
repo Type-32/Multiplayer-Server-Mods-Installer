@@ -9,6 +9,18 @@ import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.json.JSONObject;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.io.BufferedReader;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+class ReleaseData {
+    public String versionTagName = "";
+    public String zipballURL = "";
+    public String originalURL = "";
+}
 
 public class Installer extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -38,15 +50,23 @@ public class Installer extends JFrame {
         directorySelector.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.showOpenDialog(Installer.this);
             selectedDirectory = chooser.getSelectedFile();
+            if (selectedDirectory == null){
+                if (osName.contains("windows")) {
+                    selectedDirectory = new File("C:\\Users\\" + System.getProperty("user.name")
+                            + "\\AppData\\Roaming\\.minecraft\\mods");
+                } else {
+                    selectedDirectory = new File(System.getProperty("user.home") + "/Library/Application Support/minecraft/mods");
+                }
+            }
             directoryPath.setText(selectedDirectory.getAbsolutePath());
+            log("Set directory " + selectedDirectory.getAbsolutePath());
         });
         directoryPanel.add(directorySelector);
 
-        File subSD = new File(selectedDirectory.getAbsolutePath());
-
         // Directory path text box
-        directoryPath = new JTextField(30);
+        directoryPath = new JTextField(35);
         directoryPath.setEditable(false);
         directoryPanel.add(directoryPath);
 
@@ -60,47 +80,57 @@ public class Installer extends JFrame {
         installButton.addActionListener(e -> {
             if (selectedDirectory == null && (!selectedDirectory.getAbsolutePath().contains("mods") && !selectedDirectory.getAbsolutePath().contains("minecraft"))) {
                 JOptionPane.showMessageDialog(Installer.this, "Please select a Valid Mods directory first.");
+                log("Invalid directory " + selectedDirectory.getAbsolutePath());
                 return;
             }
 
             try {
 
                 // Delete old files
+                log("Try delete mod files under dir " + selectedDirectory.getAbsolutePath());
                 for (File file : selectedDirectory.listFiles()) {
                     if (file.getName().endsWith(".jar")) {
+                        log("Deleted " + file.getName());
                         file.delete();
                     }
                 }
 
                 // Download latest source code zip file
-                URL url = new URL(
-                        "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
-                InputStream in = url.openStream();
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                int nRead;
-                byte[] data = new byte[5012];
-                while ((nRead = in.read(data, 0, data.length)) != -1) {
-                    buffer.write(data, 0, nRead);
-                }
-                buffer.flush();
-                String response = new String(buffer.toByteArray());
-                JSONObject json = new JSONObject(response);
-                String downloadUrl = json.getString("zipball_url");
-                version = json.getString("tag_name");
-                in.close();
+                log("Try fetching latest source code zip file release from GitLab");
+//                URL url = new URL(
+//                        "https://api.github.com/repos/Type-32/InfSMP-Mods/releases/latest");
+//                InputStream in = url.openStream();
+//                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+//                int nRead;
+//                byte[] data = new byte[5012];
+//                while ((nRead = in.read(data, 0, data.length)) != -1) {
+//                    buffer.write(data, 0, nRead);
+//                }
+//                buffer.flush();
+//                String response = new String(buffer.toByteArray());
+//                JSONObject json = new JSONObject(response);
+//                String downloadUrl = json.getString("zipball_url");
+                ReleaseData newdat = getLatestRelease("glpat-KNKWUrMw6zEitLhRspsJ", "46729939");
+                String downloadUrl = newdat.zipballURL;
+                version = newdat.versionTagName;
+                log("Retrieved downloadUrl from master " + newdat.originalURL);
+                log("Retrieved version tag " + version);
 
+                log("Try downloading source code zip file from retrieved " + downloadUrl);
                 File zipFile = new File(selectedDirectory, "source.zip");
 
                 try {
-                    Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                    downloadZipFile(downloadUrl, "glpat-KNKWUrMw6zEitLhRspsJ", zipFile.getAbsolutePath());
+                    //Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),StandardCopyOption.REPLACE_EXISTING);
                 } catch (Exception ex) {
+                    log("Failed to download source code zip file with error " + ex.getMessage());
                     JOptionPane.showMessageDialog(Installer.this,
                             "An error occurred while downloading the source code zip file: " + ex.getMessage());
                     return;
                 }
 
                 // Extract zip file
+                log("Try extracting source code zip file to " + selectedDirectory.getAbsolutePath());
                 ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile.toPath()));
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
@@ -115,37 +145,38 @@ public class Installer extends JFrame {
                 zipFile.delete();
 
                 // Move files from extracted folder to current directory
+                log("Try moving files from extracted folder to " + selectedDirectory.getAbsolutePath());
                 String fName = "";
                 try {
                     for (File file : selectedDirectory.listFiles()) {
-                        if (file.getName().contains("Type-32-InfSMP-Mods-")) {
+                        if (file.getName().contains("infsmp-mods-")) {
                             fName = (osName.contains("windows") ? "\\" : "/") + file.getName();
                             break;
                         }
                     }
                 } catch (Exception ex) {
+                    log("Failed to scan for extracted folder with error " + ex.getMessage());
                     JOptionPane.showMessageDialog(Installer.this,
                             "An error occurred while scanning for the source folder: " + ex.getMessage());
                 }
                 File extractedFolder = new File(selectedDirectory.getAbsolutePath() + fName);
-//                try {
-//
-//                } catch (Exception ex) {
-//                    JOptionPane.showMessageDialog(Installer.this,
-//                            "An error occurred while moving mods to directory: " + ex.getMessage());
-//                    System.console().printf(ex.toString());
-//                }
+
                 System.out.println("Extracted folder: " + extractedFolder.getAbsolutePath());
+                log("Extracted folder " + extractedFolder.getAbsolutePath());
                 for (File file : extractedFolder.listFiles()) {
                     System.out.println("Folder File: " + file.getAbsolutePath());
+                    log("Move file " + file.getAbsolutePath());
                     Files.move(file.toPath(), new File(selectedDirectory, file.getName()).toPath(),StandardCopyOption.REPLACE_EXISTING);
                 }
 
                 // Delete extracted folder and zip file
+                log("Deleting extracted folder " + extractedFolder.getAbsolutePath());
                 extractedFolder.delete();
 
+                log("Installation finished with version tag " + version + " from repo " + newdat.originalURL);
                 JOptionPane.showMessageDialog(Installer.this, "Installation Finished.\nVersion Tag (Debug): " + version);
             } catch (Exception ex) {
+                log("Failed to install with error " + ex.getMessage());
                 System.out.println(ex.getCause());
                 JOptionPane.showMessageDialog(Installer.this, "An error occurred while executing process: " + ex.getMessage());
                 ex.printStackTrace();
@@ -164,6 +195,63 @@ public class Installer extends JFrame {
     }
     private void log(String message) {
         logs += message + "\n";
+    }
+
+    public static void downloadZipFile(String zipballURL, String personalAccessToken, String filePath) {
+
+        try {
+            URL urlObj = new URL(zipballURL);
+            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "*/*");
+
+            BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
+            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static ReleaseData getLatestRelease(String personalAccessToken, String projectId) {
+        ReleaseData releaseData = new ReleaseData();
+        String url = "https://gitlab.com/api/v4/projects/" + projectId + "/releases";
+        releaseData.originalURL = url;
+
+        try {
+            URL urlObj = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("PRIVATE-TOKEN", personalAccessToken);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            System.out.println(response.toString());
+            JsonArray releases = new Gson().fromJson(response.toString(), JsonArray.class);
+            if (releases.size() > 0) {
+                JsonObject latestRelease = releases.get(0).getAsJsonObject();
+                System.out.println(latestRelease.toString());
+                releaseData.versionTagName = latestRelease.get("tag_name").getAsString();
+                releaseData.zipballURL = latestRelease.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
+                System.out.println(releaseData.zipballURL);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return releaseData;
     }
 
     public static void main(String[] args) {

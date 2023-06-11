@@ -10,5 +10,6 @@
     <orderEntry type="library" name="eduworks.json.ld" level="application" />
     <orderEntry type="library" name="json" level="application" />
     <orderEntry type="library" name="openjfx-20.0.1_osx-aarch64_bin-sdk" level="application" />
+    <orderEntry type="library" name="google.code.gson1" level="application" />
   </component>
 </module>

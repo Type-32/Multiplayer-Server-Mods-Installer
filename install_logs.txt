@@ -1,0 +1,43 @@
+nullSet directory /Users/administrator/Library/Application Support/minecraft/mods
+Try delete mod files under dir /Users/administrator/Library/Application Support/minecraft/mods
+Try fetching latest source code zip file release from GitLab
+Retrieved url https://gitlab.com/crtl-prototype-studios/infsmp-mods/-/archive/infsmp-md1.3/infsmp-mods-infsmp-md1.3.zip
+Retrieved version tag infsmp-md1.3
+Try downloading source code zip file from https://gitlab.com/crtl-prototype-studios/infsmp-mods/-/archive/infsmp-md1.3/infsmp-mods-infsmp-md1.3.zip
+Try extracting source code zip file to /Users/administrator/Library/Application Support/minecraft/mods
+Try moving files from extracted folder to /Users/administrator/Library/Application Support/minecraft/mods
+Extracted folder /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/lambdynamiclights-2.2.0+1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/smoothboot-fabric-1.19-1.7.1.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/memoryleakfix-forge-1.17+-1.0.0.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/sodium-fabric-mc1.19.2-0.4.4+build.18.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/libIPN-fabric-1.19-3.0.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/LICENSE
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/InventoryProfilesNext-fabric-1.19-1.10.3.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/architectury-6.5.85-fabric.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/diamondeconomy-1.5.4.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/vinery-1.2.4.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/ferritecore-5.0.3-fabric.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/cloth-config-8.2.88-fabric.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/itemswapper-fabric-0.4.0-mc1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/entityculling-fabric-1.6.1-mc1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/personality-0.1.0.indev2+1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/modmenu-4.2.0-beta.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/diamondchestshop-1.2.4-1.19.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/journeymap-1.19.2-5.9.7-fabric.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/README.md
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/dynamic-fps-2.2.0.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/fabric-language-kotlin-1.9.5+kotlin.1.8.22.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/fabric-api-0.76.0+1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/lazydfu-0.1.3.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/create-fabric-0.5.0.i-1017+1.19.2.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/appleskin-fabric-mc1.19-2.4.1.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/starlight-1.1.1+fabric.ae22326.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/lithium-fabric-mc1.19.2-0.11.1.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/owo-lib-0.9.3+1.19.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/continuity-2.0.2+1.19.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/iris-mc1.19.2-1.6.4 (1).jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/Debugify-2.8.0.jar
+Move file /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3/indium-1.0.9+mc1.19.2.jar
+Deleting extracted folder /Users/administrator/Library/Application Support/minecraft/mods/infsmp-mods-infsmp-md1.3
+Installation finished with version tag infsmp-md1.3 from url https://gitlab.com/crtl-prototype-studios/infsmp-mods/-/archive/infsmp-md1.3/infsmp-mods-infsmp-md1.3.zip
