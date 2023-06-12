@@ -1,14 +1,18 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.File;
@@ -70,7 +74,7 @@ public class FormInstaller extends Component {
 
                 // Download latest source code zip file
                 log("Try fetching latest source code zip file release from GitLab");
-                ReleaseData newdat = getLatestRelease(Instance.GITLAB_PERSONAL_ACCESS_TOKEN, Instance.GITLAB_PROJECT_ID);
+                ReleaseData newdat = getReleases(Instance.GITLAB_PERSONAL_ACCESS_TOKEN, Instance.GITLAB_PROJECT_ID);
                 String downloadUrl = newdat.zipballURL;
                 version = newdat.versionTagName;
                 log("Retrieved downloadUrl from master " + newdat.originalURL);
@@ -204,7 +208,8 @@ public class FormInstaller extends Component {
         }
     }
 
-    public static ReleaseData getLatestRelease(String personalAccessToken, String projectId) {
+    public static List<ReleaseData> getReleases(String personalAccessToken, String projectId) {
+        ArrayList<ReleaseData> releaseDataList = new ArrayList<ReleaseData>();
         ReleaseData releaseData = new ReleaseData();
         String url = "https://gitlab.com/api/v4/projects/" + projectId + "/releases";
         releaseData.originalURL = url;
@@ -226,6 +231,12 @@ public class FormInstaller extends Component {
             in.close();
             System.out.println(response.toString());
             JsonArray releases = new Gson().fromJson(response.toString(), JsonArray.class);
+            for (JsonElement release : releases) {
+                JsonObject releaseObj = release.getAsJsonObject();
+                releaseData.versionTagName = releaseObj.get("tag_name").getAsString();
+                releaseData.zipballURL = releaseObj.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
+                releaseDataList.add(releaseData);
+            }
             if (releases.size() > 0) {
                 JsonObject latestRelease = releases.get(0).getAsJsonObject();
                 System.out.println(latestRelease.toString());
