@@ -20,17 +20,25 @@ class ReleaseData {
     public String versionTagName = "";
     public String zipballURL = "";
     public String originalURL = "";
+    public ReleaseData(String versionTagName, String zipballURL, String originalURL) {
+        this.versionTagName = versionTagName;
+        this.zipballURL = zipballURL;
+        this.originalURL = originalURL;
+    }
 }
+
 
 public class Installer extends JFrame {
     private static final long serialVersionUID = 1L;
     private File selectedDirectory;
     private JTextField directoryPath;
+    private JComboBox<ReleaseData> versionSelector;
     private String version,logs;
 
     public Installer() {
         // Customizable GitLab Instance
         ConfigInstance Instance = new ConfigInstance("glpat-KNKWUrMw6zEitLhRspsJ", "46729939", "infsmp-mods-");
+        VersionControlFetcher Fetcher = new VersionControlFetcher(Instance);
 
         // Set up UI
         setTitle("Installer");
@@ -221,42 +229,6 @@ public class Installer extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static ReleaseData getLatestRelease(String personalAccessToken, String projectId) {
-        ReleaseData releaseData = new ReleaseData();
-        String url = "https://gitlab.com/api/v4/projects/" + projectId + "/releases";
-        releaseData.originalURL = url;
-
-        try {
-            URL urlObj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("PRIVATE-TOKEN", personalAccessToken);
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            System.out.println(response.toString());
-            JsonArray releases = new Gson().fromJson(response.toString(), JsonArray.class);
-            if (releases.size() > 0) {
-                JsonObject latestRelease = releases.get(0).getAsJsonObject();
-                System.out.println(latestRelease.toString());
-                releaseData.versionTagName = latestRelease.get("tag_name").getAsString();
-                releaseData.zipballURL = latestRelease.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
-                System.out.println(releaseData.zipballURL);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return releaseData;
     }
 
     public static void main(String[] args) {
