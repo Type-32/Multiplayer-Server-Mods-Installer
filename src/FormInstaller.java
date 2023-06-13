@@ -1,37 +1,27 @@
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import javax.swing.*;
-import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.File;
 
-public class FormInstaller extends Component {
+public class FormInstaller extends JFrame {
     private static final long serialVersionUID = 1L;
     private File selectedDirectory;
-    private String version,logs;
+    private String version;
+    public static String logs;
     private JLabel appTitle;
     private JPanel mainWindow;
     private JTextField directoryDisplay;
     private JButton directorySelect;
-    private JComboBox versionSelector;
+    private JComboBox<ReleaseData> versionSelector;
     private JButton installButton;
+    private JCheckBox deleteExistingFilesOption;
+    private JPanel mainContent;
 
-    public FormInstaller() {
-        // Customizable GitLab Instance
-        ConfigInstance Instance = new ConfigInstance("glpat-KNKWUrMw6zEitLhRspsJ", "46729939", "infsmp-mods-");
-
+    public void setDefaultDirectory(){
         // Set default selected directory
         String osName = System.getProperty("os.name").toLowerCase();
         if (osName.contains("windows")) {
@@ -40,21 +30,60 @@ public class FormInstaller extends Component {
         } else {
             selectedDirectory = new File(System.getProperty("user.home") + "/Library/Application Support/minecraft/mods");
         }
+    }
+
+    public FormInstaller() {
+        // Content Pane Init
+        setContentPane(mainWindow);
+        setTitle("Mods Installer");
+        setSize(600,250);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+        setLocation(400, 200);
+
+        deleteExistingFilesOption.setSelected(true);
+
+        // Customizable GitLab Instance
+        ConfigInstance Instance = new ConfigInstance("glpat-KNKWUrMw6zEitLhRspsJ", "46729939", "infsmp-mods-");
+        VersionControlFetcher Fetcher = new VersionControlFetcher(Instance, this);
+        String osName = System.getProperty("os.name").toLowerCase();
+        setDefaultDirectory();
+        try{
+            ArrayList<ReleaseData> rl = Fetcher.fetch();
+            for (ReleaseData r : rl) {
+                versionSelector.addItem(r);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Failed to fetch latest version from GitLab. Please check your internet connection and try again.\nError: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        }
 
         // Directory selector
-        JPanel directoryPanel = new JPanel();
-        directoryPanel.setLayout(new BoxLayout(directoryPanel, BoxLayout.X_AXIS));
-        JButton directorySelector = new JButton("Select Directory");
-        directorySelector.addActionListener(e -> {
+        directorySelect.addActionListener(e -> {
             selectInstallationDirectory(osName);
+        });
+
+        // Version selector
+        versionSelector.addActionListener(e -> {
+            version = versionSelector.getSelectedItem().toString();
         });
 
         directoryDisplay.setText(this.selectedDirectory.getAbsolutePath());
         System.out.println(this.selectedDirectory.getAbsolutePath());
 
         // Install/Update button
-        JButton installButton = new JButton("Install / Update");
         installButton.addActionListener(e -> {
+            boolean flag = false;
+            if (deleteExistingFilesOption.isSelected()) {
+                log("User prompted to delete existing files");
+                int res = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete all existing mods in the selected directory?", "Confirm Option", JOptionPane.YES_NO_OPTION);
+                if (res == JOptionPane.NO_OPTION) {
+                    log("User cancelled installation");
+                    return;
+                }
+                log("User confirmed to delete existing files");
+            }
             if (this.directorySelect == null && (!this.selectedDirectory.getAbsolutePath().contains("mods") && !this.selectedDirectory.getAbsolutePath().contains("minecraft"))) {
                 JOptionPane.showMessageDialog(this, "Please select a Valid Mods directory first.");
                 log("Invalid directory " + this.selectedDirectory.getAbsolutePath());
@@ -62,36 +91,19 @@ public class FormInstaller extends Component {
             }
 
             try {
-
                 // Delete old files
-                log("Try delete mod files under dir " + this.selectedDirectory.getAbsolutePath());
-                for (File file : this.selectedDirectory.listFiles()) {
-                    if (file.getName().endsWith(".jar")) {
-                        log("Deleted " + file.getName());
-                        file.delete();
+                if (deleteExistingFilesOption.isSelected()) {
+                    log("Try delete mod files under dir " + this.selectedDirectory.getAbsolutePath());
+                    for (File file : this.selectedDirectory.listFiles()) {
+                        if (file.getName().endsWith(".jar")) {
+                            log("Deleted " + file.getName());
+                            file.delete();
+                        }
                     }
                 }
 
                 // Download latest source code zip file
-                log("Try fetching latest source code zip file release from GitLab");
-                ReleaseData newdat = getReleases(Instance.GITLAB_PERSONAL_ACCESS_TOKEN, Instance.GITLAB_PROJECT_ID);
-                String downloadUrl = newdat.zipballURL;
-                version = newdat.versionTagName;
-                log("Retrieved downloadUrl from master " + newdat.originalURL);
-                log("Retrieved version tag " + version);
-
-                log("Try downloading source code zip file from retrieved " + downloadUrl);
-                File zipFile = new File(this.selectedDirectory, "source.zip");
-
-                try {
-                    downloadZipFile(downloadUrl, Instance.GITLAB_PERSONAL_ACCESS_TOKEN, zipFile.getAbsolutePath());
-                    //Files.copy(new URL(downloadUrl).openStream(), zipFile.toPath(),StandardCopyOption.REPLACE_EXISTING);
-                } catch (Exception ex) {
-                    log("Failed to download source code zip file with error " + ex.getMessage());
-                    JOptionPane.showMessageDialog(this,
-                            "An error occurred while downloading the source code zip file: " + ex.getMessage());
-                    return;
-                }
+                File zipFile = Fetcher.downloadRelease((ReleaseData) versionSelector.getSelectedItem(), this.selectedDirectory);
 
                 // Extract zip file
                 log("Try extracting source code zip file to " + this.selectedDirectory.getAbsolutePath());
@@ -146,24 +158,26 @@ public class FormInstaller extends Component {
                     }
                 }
 
-                log("Installation finished with version tag " + version + " from repo " + newdat.originalURL);
-                JOptionPane.showMessageDialog(this, "Installation Finished.\nVersion Tag (Debug): " + version);
+                log("Installation finished with version tag " + version + " from repo " + ((ReleaseData) versionSelector.getSelectedItem()).originalURL);
+                flag = true;
             } catch (Exception ex) {
                 log("Failed to install with error " + ex.getMessage());
                 System.out.println(ex.getCause());
                 JOptionPane.showMessageDialog(this, "An error occurred while executing process: " + ex.getMessage());
                 ex.printStackTrace();
             }
-
             try (FileWriter writer = new FileWriter("install_logs.txt")) {
                 writer.write(logs);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
+            if(flag){
+                JOptionPane.showMessageDialog(this, "Download Complete.\nInstallation logs have been saved to install_logs.txt. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
+            }else{
+                JOptionPane.showMessageDialog(this, "Installation failed. Please check install_logs.txt for more information. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
+            }
             System.exit(0);
         });
-        setVisible(true);
     }
     private void selectInstallationDirectory(String osName) {
         JFileChooser chooser = new JFileChooser();
@@ -171,83 +185,16 @@ public class FormInstaller extends Component {
         chooser.setCurrentDirectory(selectedDirectory);
         chooser.showOpenDialog(this);
         selectedDirectory = chooser.getSelectedFile();
-        if (selectedDirectory == null){
-            if (osName.contains("windows")) {
-                selectedDirectory = new File("C:\\Users\\" + System.getProperty("user.name")
-                        + "\\AppData\\Roaming\\.minecraft\\mods");
-            } else {
-                selectedDirectory = new File(System.getProperty("user.home") + "/Library/Application Support/minecraft/mods");
-            }
-        }
+        setDefaultDirectory();
         directoryDisplay.setText(selectedDirectory.getAbsolutePath());
         log("Set directory " + selectedDirectory.getAbsolutePath());
     }
 
-    private void log(String message) {
+    public static void log(String message) {
         logs += message + "\n";
     }
+    public static void main(String[] args) {
+        FormInstaller form = new FormInstaller();
 
-    public static void downloadZipFile(String zipballURL, String personalAccessToken, String filePath) {
-
-        try {
-            URL urlObj = new URL(zipballURL);
-            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Accept", "*/*");
-
-            BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
-            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
-            byte[] dataBuffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                fileOutputStream.write(dataBuffer, 0, bytesRead);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static List<ReleaseData> getReleases(String personalAccessToken, String projectId) {
-        ArrayList<ReleaseData> releaseDataList = new ArrayList<ReleaseData>();
-        ReleaseData releaseData = new ReleaseData();
-        String url = "https://gitlab.com/api/v4/projects/" + projectId + "/releases";
-        releaseData.originalURL = url;
-
-        try {
-            URL urlObj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("PRIVATE-TOKEN", personalAccessToken);
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            System.out.println(response.toString());
-            JsonArray releases = new Gson().fromJson(response.toString(), JsonArray.class);
-            for (JsonElement release : releases) {
-                JsonObject releaseObj = release.getAsJsonObject();
-                releaseData.versionTagName = releaseObj.get("tag_name").getAsString();
-                releaseData.zipballURL = releaseObj.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
-                releaseDataList.add(releaseData);
-            }
-            if (releases.size() > 0) {
-                JsonObject latestRelease = releases.get(0).getAsJsonObject();
-                System.out.println(latestRelease.toString());
-                releaseData.versionTagName = latestRelease.get("tag_name").getAsString();
-                releaseData.zipballURL = latestRelease.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
-                System.out.println(releaseData.zipballURL);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return releaseData;
     }
 }
