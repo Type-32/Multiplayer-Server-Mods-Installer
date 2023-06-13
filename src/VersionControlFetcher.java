@@ -7,17 +7,19 @@ import jdk.nashorn.internal.runtime.Version;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
 public class VersionControlFetcher {
     protected ConfigInstance config;
+    public ArrayList<ReleaseData> releaseDataArrayList = new ArrayList<ReleaseData>();
     public VersionControlFetcher(ConfigInstance config) {
         this.config = config;
     }
-    public ArrayList<ReleaseData> fetch() {
-        ArrayList<ReleaseData> releaseDataArrayList = new ArrayList<ReleaseData>();
+    public ArrayList<ReleaseData> fetch() throws IOException {
+        releaseDataArrayList.clear();
         String url = "https://gitlab.com/api/v4/projects/" + config.GITLAB_PROJECT_ID + "/releases";
 
         try {
@@ -44,7 +46,6 @@ public class VersionControlFetcher {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return releaseDataArrayList;
     }
 }

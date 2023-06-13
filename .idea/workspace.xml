@@ -10,10 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dce2e40e-5217-46c4-8491-b96abe978b7c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/VersionControlFetcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Installer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Installer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VersionControlFetcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VersionControlFetcher.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +80,7 @@
       <workItem from="1686299860363" duration="15143000" />
       <workItem from="1686447724649" duration="483000" />
       <workItem from="1686448231346" duration="16178000" />
+      <workItem from="1686626890347" duration="111000" />
     </task>
     <servers />
   </component>
