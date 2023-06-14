@@ -11,8 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="dce2e40e-5217-46c4-8491-b96abe978b7c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install_logs.txt" beforeDir="false" afterPath="$PROJECT_DIR$/install_logs.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FormInstaller.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/FormInstaller.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FormInstaller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FormInstaller.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -224,7 +224,6 @@ public class FormInstaller extends JFrame {
         chooser.setCurrentDirectory(selectedDirectory);
         chooser.showOpenDialog(this);
         selectedDirectory = chooser.getSelectedFile();
-        setDefaultDirectory();
         directoryDisplay.setText(selectedDirectory.getAbsolutePath());
         log("Set directory " + selectedDirectory.getAbsolutePath());
     }
