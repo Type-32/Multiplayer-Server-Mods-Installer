@@ -5,12 +5,14 @@ class ReleaseData {
     public String versionTagName = "";
     public String zipballURL = "";
     public String originalURL = "";
+    public ModLoaderType modLoaderType = ModLoaderType.None;
 
-    public ReleaseData(String versionTitleName, String versionTagName, String zipballURL, String originalURL) {
+    public ReleaseData(String versionTitleName, String versionTagName, String zipballURL, String originalURL, ModLoaderType modLoaderType) {
         this.versionTitleName = versionTitleName;
         this.versionTagName = versionTagName;
         this.zipballURL = zipballURL;
         this.originalURL = originalURL;
+        this.modLoaderType = modLoaderType;
     }
 
     @Override

@@ -10,7 +10,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dce2e40e-5217-46c4-8491-b96abe978b7c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/ModLoaderType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FormInstaller.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/FormInstaller.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FormInstaller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FormInstaller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ReleaseData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ReleaseData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/VersionControlFetcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VersionControlFetcher.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +27,7 @@
       <list>
         <option value="JavaFXApplication" />
         <option value="Class" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -70,7 +76,8 @@
       <workItem from="1686447724649" duration="483000" />
       <workItem from="1686448231346" duration="16178000" />
       <workItem from="1686543444889" duration="5284000" />
-      <workItem from="1686713831249" duration="621000" />
+      <workItem from="1686713831249" duration="626000" />
+      <workItem from="1686721654086" duration="6601000" />
     </task>
     <servers />
   </component>

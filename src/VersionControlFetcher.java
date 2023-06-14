@@ -42,9 +42,16 @@ public class VersionControlFetcher {
             in.close();
             System.out.println(response.toString());
             JsonArray releases = new Gson().fromJson(response.toString(), JsonArray.class);
+            if(releases.isEmpty() || releases.isJsonNull()) {
+                FormInstaller.log("Failed to fetch releases from GitLab");
+                JOptionPane.showConfirmDialog(windowComp, "Failed to fetch releases from GitLab", "Error", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
             for (JsonElement release : releases) {
                 JsonObject releaseObj = release.getAsJsonObject();
-                releaseDataArrayList.add(new ReleaseData(releaseObj.get("name").getAsString(),releaseObj.get("tag_name").getAsString(),releaseObj.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString(),url));
+                String name = releaseObj.get("name").getAsString(), tagName = releaseObj.get("tag_name").getAsString(), assets = releaseObj.get("assets").getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
+                System.out.println("name: " + name + ", tagName: " + tagName + ", assets: " + assets);
+                releaseDataArrayList.add(new ReleaseData(name, tagName, assets, url, tagName.toLowerCase().contains("fabric") ? ModLoaderType.Fabric : tagName.toLowerCase().contains("forge") ? ModLoaderType.Forge : tagName.toLowerCase().contains("liteloader") ? ModLoaderType.LiteLoader : tagName.toLowerCase().contains("quilt") ? ModLoaderType.Quilt : ModLoaderType.None));
             }
         } catch (IOException e) {
             e.printStackTrace();

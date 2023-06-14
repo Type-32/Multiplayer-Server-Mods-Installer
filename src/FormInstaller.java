@@ -20,6 +20,7 @@ public class FormInstaller extends JFrame {
     private JButton installButton;
     private JCheckBox deleteExistingFilesOption;
     private JPanel mainContent;
+    private JComboBox<ModLoaderType> modloaderSelector;
 
     public void setDefaultDirectory(){
         // Set default selected directory
@@ -32,6 +33,19 @@ public class FormInstaller extends JFrame {
         }
     }
 
+    public void refreshVersionSelection(ModLoaderType type, VersionControlFetcher Fetcher) throws IOException {
+        versionSelector.removeAllItems();
+        ArrayList<ReleaseData> rl = Fetcher.fetch(), temp = new ArrayList<ReleaseData>();
+        for (ReleaseData r : rl) {
+            if (r.modLoaderType == type || (type == ModLoaderType.All && r.modLoaderType == ModLoaderType.None || r.modLoaderType == ModLoaderType.All)) {
+                versionSelector.addItem(r);
+                temp.add(r);
+            }
+        }
+        if (temp.size() > 0)
+            versionSelector.setSelectedItem(temp.toArray()[0]);
+    }
+
     public FormInstaller() {
         // Content Pane Init
         setContentPane(mainWindow);
@@ -42,6 +56,11 @@ public class FormInstaller extends JFrame {
         setLocation(400, 200);
 
         deleteExistingFilesOption.setSelected(true);
+        modloaderSelector.addItem(ModLoaderType.All);
+        modloaderSelector.addItem(ModLoaderType.Fabric);
+        modloaderSelector.addItem(ModLoaderType.Forge);
+        modloaderSelector.addItem(ModLoaderType.Quilt);
+        modloaderSelector.addItem(ModLoaderType.LiteLoader);
 
         // Customizable GitLab Instance
         ConfigInstance Instance = new ConfigInstance("glpat-KNKWUrMw6zEitLhRspsJ", "46729939", "infsmp-mods-");
@@ -49,10 +68,7 @@ public class FormInstaller extends JFrame {
         String osName = System.getProperty("os.name").toLowerCase();
         setDefaultDirectory();
         try{
-            ArrayList<ReleaseData> rl = Fetcher.fetch();
-            for (ReleaseData r : rl) {
-                versionSelector.addItem(r);
-            }
+            refreshVersionSelection(ModLoaderType.All, Fetcher);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Failed to fetch latest version from GitLab. Please check your internet connection and try again.\nError: " + e.getMessage());
             e.printStackTrace();
@@ -64,8 +80,18 @@ public class FormInstaller extends JFrame {
             selectInstallationDirectory(osName);
         });
 
+        // Modloader selector
+        modloaderSelector.addActionListener(e -> {
+            try {
+                refreshVersionSelection((ModLoaderType) modloaderSelector.getSelectedItem(), Fetcher);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+
         // Version selector
         versionSelector.addActionListener(e -> {
+            if(versionSelector.getSelectedItem() == null) return;
             version = versionSelector.getSelectedItem().toString();
         });
 
