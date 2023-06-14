@@ -41,7 +41,7 @@ public class FormInstaller extends JFrame {
         versionSelector.removeAllItems();
         ArrayList<ReleaseData> rl = Fetcher.fetch(), temp = new ArrayList<ReleaseData>();
         for (ReleaseData r : rl) {
-            if (r.modLoaderType == type || (type == ModLoaderType.All && r.modLoaderType == ModLoaderType.None || r.modLoaderType == ModLoaderType.All)) {
+            if (r.modLoaderType == type || (type == ModLoaderType.All)) {
                 versionSelector.addItem(r);
                 temp.add(r);
             }
@@ -120,111 +120,102 @@ public class FormInstaller extends JFrame {
                 return;
             }
 
-            worker = new SwingWorker<Void, String>() {
-                @Override
-                protected Void doInBackground() throws Exception {
-                    setContentPane(FormInstaller.this.installProgressWindow.progressWindow);
-                    setSize(600,500);
-                    FormInstaller.this.installProgressWindow.installProgress.setMaximum(100);
-                    FormInstaller.this.installProgressWindow.installProgress.setMinimum(0);
-                    try {
-                        boolean flag = false;
-                        // Delete old files
-                        if (deleteExistingFilesOption.isSelected()) {
-                            FormInstaller.this.log("Try delete mod files under dir " + FormInstaller.this.selectedDirectory.getAbsolutePath());
-                            for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
-                                if (file.getName().endsWith(".jar")) {
-                                    FormInstaller.this.log("Deleted " + file.getName());
-                                    file.delete();
-                                }
-                            }
+//            setContentPane(FormInstaller.this.installProgressWindow.progressWindow);
+//            setSize(600,500);
+//            FormInstaller.this.installProgressWindow.installProgress.setMaximum(100);
+//            FormInstaller.this.installProgressWindow.installProgress.setMinimum(0);
+            try {
+                // Delete old files
+                if (deleteExistingFilesOption.isSelected()) {
+                    FormInstaller.this.log("Try delete mod files under dir " + FormInstaller.this.selectedDirectory.getAbsolutePath());
+                    for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
+                        if (file.getName().endsWith(".jar")) {
+                            FormInstaller.this.log("Deleted " + file.getName());
+                            file.delete();
                         }
-
-                        // Download latest source code zip file
-                        File zipFile = Fetcher.downloadRelease((ReleaseData) FormInstaller.this.versionSelector.getSelectedItem(), FormInstaller.this.selectedDirectory);
-                        FormInstaller.this.installProgressWindow.installProgress.setValue(50);
-                        // Extract zip file
-                        FormInstaller.this.log("Try extracting source code zip file to " + FormInstaller.this.selectedDirectory.getAbsolutePath());
-                        ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile.toPath()));
-                        ZipEntry entry;
-                        while ((entry = zis.getNextEntry()) != null) {
-                            File file = new File(FormInstaller.this.selectedDirectory, entry.getName());
-                            if (entry.isDirectory()) {
-                                file.mkdirs();
-                            } else {
-                                Files.copy(zis, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            }
-                        }
-                        zis.close();
-                        zipFile.delete();
-
-                        // Move files from extracted folder to current directory
-                        FormInstaller.this.log("Try moving files from extracted folder to " + FormInstaller.this.selectedDirectory.getAbsolutePath());
-                        String fName = "";
-                        try {
-                            for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
-                                if (file.getName().contains(Instance.EXTRACTED_FOLDER_PREFIX)) {
-                                    fName = (osName.contains("windows") ? "\\" : "/") + file.getName();
-                                    break;
-                                }
-                            }
-                        } catch (Exception ex) {
-                            log("Failed to scan for extracted folder with error " + ex.getMessage());
-                            JOptionPane.showMessageDialog(FormInstaller.this,
-                                    "An error occurred while scanning for the source folder: " + ex.getMessage());
-                        }
-                        File extractedFolder = new File(FormInstaller.this.selectedDirectory.getAbsolutePath() + fName);
-
-                        System.out.println("Extracted folder: " + extractedFolder.getAbsolutePath());
-                        FormInstaller.this.log("Extracted folder " + extractedFolder.getAbsolutePath());
-                        int ind = 1, mx = extractedFolder.listFiles().length;
-                        for (File file : extractedFolder.listFiles()) {
-                            System.out.println("Folder File: " + file.getAbsolutePath());
-                            FormInstaller.this.log("Move file " + file.getAbsolutePath());
-                            Files.move(file.toPath(), new File(FormInstaller.this.selectedDirectory, file.getName()).toPath(),StandardCopyOption.REPLACE_EXISTING);
-                            FormInstaller.this.installProgressWindow.installProgress.setValue(50 + (ind / mx) * 25);
-                            ind++;
-                        }
-
-                        // Delete extracted folder and zip file
-                        FormInstaller.this.log("Deleting extracted folder " + extractedFolder.getAbsolutePath());
-                        extractedFolder.delete();
-                        int ind2 = 1, mx2 = FormInstaller.this.selectedDirectory.listFiles().length;
-                        for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
-                            FormInstaller.this.log("Checking " + file.getAbsolutePath() + " for .zip");
-                            if(file.getName().endsWith(".zip") || file.getName().equals("source.zip")){
-                                FormInstaller.this.log("Found zip " + file.getAbsolutePath());
-                                file.delete();
-                                break;
-                            }
-                            FormInstaller.this.installProgressWindow.installProgress.setValue(75 + (ind2 / mx2) * 25);
-                        }
-
-                        FormInstaller.this.log("Installation finished with version tag " + version + " from repo " + ((ReleaseData) versionSelector.getSelectedItem()).originalURL);
-                        flag = true;
-                    } catch (Exception ex) {
-                        FormInstaller.this.log("Failed to install with error " + ex.getMessage());
-                        System.out.println(ex.getCause());
-                        JOptionPane.showMessageDialog(FormInstaller.this, "An error occurred while executing process: " + ex.getMessage());
-                        ex.printStackTrace();
                     }
-                    FormInstaller.this.installProgressWindow.installProgress.setValue(100);
-                    try (FileWriter writer = new FileWriter("install_logs.txt")) {
-                        writer.write(FormInstaller.this.logs);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    if(flag){
-                        JOptionPane.showMessageDialog(FormInstaller.this, "Download Complete.\nInstallation logs have been saved to install_logs.txt. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
-                    }else{
-                        JOptionPane.showMessageDialog(FormInstaller.this, "Installation failed. Please check install_logs.txt for more information. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
-                    }
-                    System.exit(0);
-                    return null;
                 }
-            };
 
-            worker.execute();
+                // Download latest source code zip file
+                File zipFile = Fetcher.downloadRelease((ReleaseData) FormInstaller.this.versionSelector.getSelectedItem(), FormInstaller.this.selectedDirectory);
+//                FormInstaller.this.installProgressWindow.installProgress.setValue(50);
+                // Extract zip file
+                FormInstaller.this.log("Try extracting source code zip file to " + FormInstaller.this.selectedDirectory.getAbsolutePath());
+                ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile.toPath()));
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    File file = new File(FormInstaller.this.selectedDirectory, entry.getName());
+                    if (entry.isDirectory()) {
+                        file.mkdirs();
+                    } else {
+                        Files.copy(zis, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+                zis.close();
+                zipFile.delete();
+
+                // Move files from extracted folder to current directory
+                FormInstaller.this.log("Try moving files from extracted folder to " + FormInstaller.this.selectedDirectory.getAbsolutePath());
+                String fName = "";
+                try {
+                    for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
+                        if (file.getName().contains(Instance.EXTRACTED_FOLDER_PREFIX)) {
+                            fName = (osName.contains("windows") ? "\\" : "/") + file.getName();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    log("Failed to scan for extracted folder with error " + ex.getMessage());
+                    JOptionPane.showMessageDialog(FormInstaller.this,
+                            "An error occurred while scanning for the source folder: " + ex.getMessage());
+                }
+                File extractedFolder = new File(FormInstaller.this.selectedDirectory.getAbsolutePath() + fName);
+
+                System.out.println("Extracted folder: " + extractedFolder.getAbsolutePath());
+                FormInstaller.this.log("Extracted folder " + extractedFolder.getAbsolutePath());
+                int ind = 1, mx = extractedFolder.listFiles().length;
+                for (File file : extractedFolder.listFiles()) {
+                    System.out.println("Folder File: " + file.getAbsolutePath());
+                    FormInstaller.this.log("Move file " + file.getAbsolutePath());
+                    Files.move(file.toPath(), new File(FormInstaller.this.selectedDirectory, file.getName()).toPath(),StandardCopyOption.REPLACE_EXISTING);
+//                    FormInstaller.this.installProgressWindow.installProgress.setValue(50 + (ind / mx) * 25);
+                    ind++;
+                }
+
+                // Delete extracted folder and zip file
+                FormInstaller.this.log("Deleting extracted folder " + extractedFolder.getAbsolutePath());
+                extractedFolder.delete();
+                int ind2 = 1, mx2 = FormInstaller.this.selectedDirectory.listFiles().length;
+                for (File file : FormInstaller.this.selectedDirectory.listFiles()) {
+                    FormInstaller.this.log("Checking " + file.getAbsolutePath() + " for .zip");
+                    if(file.getName().endsWith(".zip") || file.getName().equals("source.zip")){
+                        FormInstaller.this.log("Found zip " + file.getAbsolutePath());
+                        file.delete();
+                        break;
+                    }
+//                    FormInstaller.this.installProgressWindow.installProgress.setValue(75 + (ind2 / mx2) * 25);
+                }
+
+                FormInstaller.this.log("Installation finished with version tag " + version + " from repo " + ((ReleaseData) versionSelector.getSelectedItem()).originalURL);
+                flag = true;
+            } catch (Exception ex) {
+                FormInstaller.this.log("Failed to install with error " + ex.getMessage());
+                System.out.println(ex.getCause());
+                JOptionPane.showMessageDialog(FormInstaller.this, "An error occurred while executing process: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+//            FormInstaller.this.installProgressWindow.installProgress.setValue(100);
+            try (FileWriter writer = new FileWriter("install_logs.txt")) {
+                writer.write(FormInstaller.this.logs);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            if(flag){
+                JOptionPane.showMessageDialog(FormInstaller.this, "Download Complete.\nInstallation logs have been saved to install_logs.txt. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
+            }else{
+                JOptionPane.showMessageDialog(FormInstaller.this, "Installation failed. Please check install_logs.txt for more information. (Path: " + new File("install_logs.txt").getAbsolutePath() + ")");
+            }
+            System.exit(0);
         });
     }
     private void selectInstallationDirectory(String osName) {
